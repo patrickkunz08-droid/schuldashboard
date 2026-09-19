@@ -1,0 +1,19 @@
+[
+  {"datum": "2026-09-21", "fach": "W&R Ergänzungsfach", "titel": "1. W&R-Prüfung (BWL Kap. 1, 2, 4, 5)"},
+  {"datum": "2026-09-22", "fach": "Deutsch", "titel": "Aufsatz", "typ": "pruefung"},
+  {"datum": "2026-09-24", "fach": "Englisch", "titel": "Assessment 1 (Fragen, Auxiliaries, The Landlady)"},
+  {"datum": "2026-09-28", "fach": "Schule", "titel": "Kein Unterricht (Weiterbildung Lehrpersonen)", "typ": "normal"},
+  {"datum": "2026-09-29", "fach": "Schule", "titel": "Kein Unterricht (Weiterbildung Lehrpersonen)", "typ": "normal"},
+  {"datum": "2026-10-05", "fach": "Schule", "titel": "Herbstferien bis 18.10.", "typ": "normal"},
+  {"datum": "2026-10-22", "fach": "Mathematik", "titel": "Prüfung 2 (Gleichungen, Dossier 3+4)"},
+  {"datum": "2026-11-02", "fach": "Mathematik", "titel": "Prüfung 3 (Quadr. Gleichungen, Datenanalyse)"},
+  {"datum": "2026-11-05", "fach": "Englisch", "titel": "Assessment 2"},
+  {"datum": "2026-11-19", "fach": "Schule", "titel": "Kein Unterricht (LKB / Weiterbildung)", "typ": "normal"},
+  {"datum": "2026-11-20", "fach": "Schule", "titel": "Kein Unterricht (LKB / Weiterbildung)", "typ": "normal"},
+  {"datum": "2026-11-30", "fach": "Mathematik", "titel": "Prüfung 4 (Potenzen, Wurzeln)"},
+  {"datum": "2026-12-01", "fach": "FRW", "titel": "Prüfung 2 (Band 1 Kap. 6–9, Band 2 Kap. 1–3.1)"},
+  {"datum": "2026-12-10", "fach": "Englisch", "titel": "Assessment 3"},
+  {"datum": "2026-12-14", "fach": "FRW", "titel": "Semesterprüfung (Band 2)"},
+  {"datum": "2026-12-14", "fach": "Mathematik", "titel": "Prüfung 5 (Logarithmus, Exponentialgleichungen)"},
+  {"datum": "2026-12-17", "fach": "Englisch", "titel": "Assessment 4"}
+]

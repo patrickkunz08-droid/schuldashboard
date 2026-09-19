@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Schuldashboard</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #fff; --text: #1c1f24; --muted: #6b7280; --line: #e5e7eb;
+    --exam: #dc2626; --exam-bg: #fee2e2; --accent: #2563eb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115; --card: #1a1d23; --text: #e8eaed; --muted: #9aa1ab; --line: #2b2f37;
+      --exam: #f87171; --exam-bg: #3b1518; --accent: #60a5fa;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.4 -apple-system, system-ui, "Segoe UI", sans-serif; }
+  main { max-width: 640px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 1.3rem; margin: 0 0 12px; }
+  nav { display: flex; gap: 8px; margin-bottom: 16px; position: sticky; top: 0;
+        background: var(--bg); padding: 8px 0; }
+  nav button { flex: 1; padding: 10px 6px; border: 1px solid var(--line); border-radius: 10px;
+               background: var(--card); color: var(--text); font: inherit; cursor: pointer; }
+  nav button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+  h2 { font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+       margin: 20px 0 8px; }
+  .ev { display: flex; gap: 12px; align-items: center; background: var(--card);
+        border: 1px solid var(--line); border-left: 4px solid var(--line);
+        border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+  .ev.exam { border-left-color: var(--exam); background: var(--exam-bg); }
+  .time { min-width: 46px; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .body { flex: 1; min-width: 0; }
+  .title { font-weight: 600; }
+  .sub { color: var(--muted); font-size: .85rem; }
+  .count { text-align: center; min-width: 58px; color: var(--exam); font-weight: 700; line-height: 1.1; }
+  .count small { display: block; font-weight: 400; font-size: .7rem; color: var(--muted); }
+  .empty { color: var(--muted); padding: 12px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>📚 Schuldashboard</h1>
+  <nav role="tablist">
+    <button role="tab" data-view="heute">Heute</button>
+    <button role="tab" data-view="woche">Woche</button>
+    <button role="tab" data-view="pruefungen">Prüfungen</button>
+  </nav>
+  <div id="out"></div>
+</main>
+<script>
+const TZ = "Europe/Zurich";
+const EXAM_RE = /pr(ü|ue)fung|test|assessment|\bLK\b|klausur/i;
+const DAY_MS = 86400000;
+
+// Datum als "YYYY-MM-DD" in Zürcher Zeit
+const ymd = d => d.toLocaleDateString("sv-SE", { timeZone: TZ });
+const toUTC = s => Date.parse(s + "T00:00:00Z");
+const daysBetween = (a, b) => Math.round((toUTC(b) - toUTC(a)) / DAY_MS);
+const isExam = e => e.typ === "pruefung" || (e.typ !== "normal" && EXAM_RE.test(e.titel));
+const fmtDay = s => new Date(s + "T12:00:00Z").toLocaleDateString("de-CH",
+  { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const today = ymd(new Date());
+const weekday = (new Date(today + "T12:00:00Z").getUTCDay() + 6) % 7; // Mo=0
+const weekStart = ymd(new Date(toUTC(today) - weekday * DAY_MS));
+const weekEnd = ymd(new Date(toUTC(weekStart) + 6 * DAY_MS));
+
+function card(e, withCount) {
+  const n = daysBetween(today, e.datum);
+  const count = withCount
+    ? `<div class="count">${n === 0 ? "heute" : n === 1 ? "morgen" : n}<small>${n > 1 ? "Tage" : ""}</small></div>` : "";
+  const sub = [e.fach, e.ort].filter(Boolean).map(esc).join(" · ");
+  return `<div class="ev ${isExam(e) ? "exam" : ""}">
+    <div class="time">${esc(e.zeit || "")}</div>
+    <div class="body"><div class="title">${esc(e.titel)}</div><div class="sub">${sub}</div></div>
+    ${count}</div>`;
+}
+
+function groupByDay(list) {
+  const days = {};
+  list.forEach(e => (days[e.datum] ||= []).push(e));
+  return Object.keys(days).sort().map(d => `<h2>${fmtDay(d)}</h2>` + days[d].map(e => card(e, isExam(e))).join("")).join("");
+}
+
+const views = {
+  heute: ev => {
+    const l = ev.filter(e => e.datum === today);
+    return l.length ? l.map(e => card(e, false)).join("") : '<p class="empty">Heute stehen keine Termine an. 🎉</p>';
+  },
+  woche: ev => {
+    const l = ev.filter(e => e.datum >= weekStart && e.datum <= weekEnd);
+    return l.length ? groupByDay(l) : '<p class="empty">Diese Woche keine Termine.</p>';
+  },
+  pruefungen: ev => {
+    const l = ev.filter(e => isExam(e) && e.datum >= today);
+    return l.length ? l.map(e => `<h2>${fmtDay(e.datum)}</h2>` + card(e, true)).join("")
+                    : '<p class="empty">Keine Prüfungen in Sicht.</p>';
+  },
+};
+
+(async () => {
+  const out = document.getElementById("out");
+  let ev = [];
+  try { ev = await (await fetch("termine.json", { cache: "no-store" })).json(); }
+  catch { out.innerHTML = '<p class="empty">termine.json konnte nicht geladen werden.</p>'; return; }
+  ev.sort((a, b) => (a.datum + (a.zeit || "")).localeCompare(b.datum + (b.zeit || "")));
+
+  const show = v => {
+    document.querySelectorAll("nav button").forEach(b => b.setAttribute("aria-selected", b.dataset.view === v));
+    out.innerHTML = views[v](ev);
+    try { localStorage.setItem("view", v); } catch {}
+  };
+  document.querySelectorAll("nav button").forEach(b => b.onclick = () => show(b.dataset.view));
+  let start = "heute";
+  try { start = localStorage.getItem("view") || start; } catch {}
+  show(views[start] ? start : "heute");
+})();
+</script>
+</body>
+</html>
